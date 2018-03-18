@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5009c590-c82b-4d16-8dfb-fc60e0eefa7b" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-    </list>
+    <list default="true" id="5009c590-c82b-4d16-8dfb-fc60e0eefa7b" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -27,11 +25,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="World.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="World.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/de/mechtecs/sbots/World.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="175">
-              <caret line="493" column="26" lean-forward="true" selection-start-line="493" selection-start-column="26" selection-end-line="493" selection-end-column="26" />
+            <state relative-caret-position="158">
+              <caret line="492" column="56" lean-forward="true" selection-start-line="492" selection-start-column="56" selection-end-line="492" selection-end-column="56" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#19177#19178#0" expanded="true" />
@@ -43,11 +41,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.gitignore">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="220">
-              <caret line="28" column="4" selection-start-line="28" selection-start-column="3" selection-end-line="28" selection-end-column="4" />
+            <state relative-caret-position="135">
+              <caret line="20" column="8" lean-forward="true" selection-start-line="20" selection-start-column="8" selection-end-line="20" selection-end-column="8" />
             </state>
           </provider>
         </entry>
@@ -184,6 +182,7 @@
       <find>fabs</find>
       <find>a\.out\[([0-9])\]</find>
       <find>iml</find>
+      <find>.idea</find>
     </findStrings>
     <replaceStrings>
       <replace>System.out.println</replace>
@@ -220,8 +219,8 @@
         <option value="$PROJECT_DIR$/src/main/java/de/mechtecs/sbots/Brain.java" />
         <option value="$PROJECT_DIR$/src/main/java/de/mechtecs/sbots/Agent.java" />
         <option value="$PROJECT_DIR$/src/main/java/de/mechtecs/sbots/math/Float64VectorCustom.java" />
-        <option value="$PROJECT_DIR$/src/main/java/de/mechtecs/sbots/World.java" />
         <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$PROJECT_DIR$/src/main/java/de/mechtecs/sbots/World.java" />
       </list>
     </option>
   </component>
@@ -375,10 +374,10 @@
       <window_info anchor="right" id="Maven Projects" order="3" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Terminal" order="7" visible="true" weight="0.32943678" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="7" visible="true" weight="0.32943678" />
       <window_info id="Capture Tool" order="2" />
       <window_info id="Designer" order="2" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49920762" visible="true" weight="0.25" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49920762" visible="true" weight="0.25" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info id="Structure" order="1" sideWeight="0.5007924" side_tool="true" visible="true" weight="0.25" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -772,10 +771,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="20" column="8" lean-forward="true" selection-start-line="20" selection-start-column="8" selection-end-line="20" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/de/mechtecs/sbots/World.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="175">
-          <caret line="493" column="26" lean-forward="true" selection-start-line="493" selection-start-column="26" selection-end-line="493" selection-end-column="26" />
+        <state relative-caret-position="158">
+          <caret line="492" column="56" lean-forward="true" selection-start-line="492" selection-start-column="56" selection-end-line="492" selection-end-column="56" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#19177#19178#0" expanded="true" />
@@ -783,13 +789,6 @@
             <element signature="e#22300#22301#0" expanded="true" />
             <element signature="e#22330#22331#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="220">
-          <caret line="28" column="4" selection-start-line="28" selection-start-column="3" selection-end-line="28" selection-end-column="4" />
         </state>
       </provider>
     </entry>
