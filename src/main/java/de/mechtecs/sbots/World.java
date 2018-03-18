@@ -4,6 +4,7 @@ import de.mechtecs.sbots.math.Float64VectorCustom;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 import static de.mechtecs.sbots.Constants.*;
@@ -480,12 +481,7 @@ public class World {
 
     void addRandomBots(int num)
     {
-        for (int i=0;i<num;i++) {
-            Agent a;
-            a.id= idcounter;
-            idcounter++;
-            agents.push_back(a);
-        }
+        IntStream.range(0, num).mapToObj(value -> new Agent()).map(a -> {a.id = idcounter++; return a;}).collect(Collectors.toCollection(() -> agents));
     }
 
     void positionOfInterest(int type, float &xi, float &yi) {
