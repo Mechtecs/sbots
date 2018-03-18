@@ -129,6 +129,10 @@ public class Agent {
         eyedir = Float64VectorCustom.valueOf(eyedirD);
     }
 
+    public float distance(Float64VectorCustom point) {
+        return this.pos.minus(point).length();
+    }
+
     public void printSelf() {
         System.out.println("Agent age=" + age);
         mutations.forEach(System.out::print);

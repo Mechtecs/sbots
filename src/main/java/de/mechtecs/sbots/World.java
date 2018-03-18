@@ -3,6 +3,7 @@ package de.mechtecs.sbots;
 import de.mechtecs.sbots.math.Float64VectorCustom;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -619,21 +620,13 @@ public class World {
     void processMouse(int button, int state, int x, int y)
     {
         if (state==0) {
-            float mind= (float) 1e10;
-            float mini=-1;
-            float d;
+            Float64VectorCustom click = Float64VectorCustom.valueOf(x, y);
+            Agent closest = (Agent) agents.stream().sorted((a1, a2) -> Float.compare(a1.distance(click), a2.distance(click))).toArray()[0];
 
-            for (int i=0;i<agents.size();i++) {
-                d= (float) (pow(x-agents.get(i).pos.getValue(0),2)+pow(y-agents.get(i).pos.getValue(1),2));
-                if (d<mind) {
-                    mind=d;
-                    mini=i;
-                }
-            }
             //toggle selection of this agent
-            for (int i=0;i<agents.size();i++) agents.get(i).selectflag=false;
-            agents.get((int) mini).selectflag= true;
-            agents.get((int) mini).printSelf();
+            for (Agent agent : agents) agent.selectflag = false;
+            closest.selectflag = true;
+            closest.printSelf();
         }
     }
 
@@ -657,14 +650,16 @@ public class World {
 
     public int[] numHerbCarnivores()
     {
-        int numherb=0;
-        int numcarn=0;
-        for (int i=0;i<agents.size();i++) {
-            if (agents.get(i).herbivore>0.5) numherb++;
-            else numcarn++;
-        }
+        AtomicInteger numherb= new AtomicInteger();
+        AtomicInteger numcarn= new AtomicInteger();
+        agents.forEach(a -> {
+            if ((a.herbivore > 0.5)) {
+                numherb.getAndIncrement();
+            } else {
+                numcarn.getAndIncrement();
+            }});
 
-        return new int[]{numherb,numcarn};
+        return new int[]{numherb.get(),numcarn.get()};
     }
 
     int numAgents()
