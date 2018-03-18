@@ -500,7 +500,7 @@ public class World {
             //interest of type 2 is the selected agent
             int maxi=-1;
             for(int i=0;i<agents.size();i++){
-                if(agents.get(i).selectflag==1) {maxi=i; break; }
+                if(agents.get(i).selectflag) {maxi=i; break; }
             }
             if(maxi!=-1) {
                 xi = (float) agents.get(maxi).pos.getValue(0);
@@ -535,26 +535,25 @@ public class World {
         int i1= randi(0, agents.size());
         int i2= randi(0, agents.size());
         for (int i=0;i<agents.size();i++) {
-            if (agents.get(i).age > agents[i1].age && randf(0,1)<0.1) {
+            if (agents.get(i).age > agents.get(i1).age && randf(0,1)<0.1) {
                 i1= i;
             }
-            if (agents.get(i).age > agents[i2].age && randf(0,1)<0.1 && i!=i1) {
+            if (agents.get(i).age > agents.get(i2).age && randf(0,1)<0.1 && i!=i1) {
                 i2= i;
             }
         }
 
-        Agent a1= &agents[i1];
-        Agent a2= &agents[i2];
+        Agent a1= agents.get(i1);
+        Agent a2= agents.get(i2);
 
 
         //cross brains
-        Agent anew = a1.crossover(*a2);
+        Agent anew = a1.crossover(a2);
 
 
         //maybe do mutation here? I dont know. So far its only crossover
-        anew.id= idcounter;
-        idcounter++;
-        agents.push_back(anew);
+        anew.id= idcounter++;
+        agents.add(anew);
     }
 
     void reproduce(int ai, float MR, float MR2)
@@ -562,13 +561,13 @@ public class World {
         if (randf(0,1)<0.04) MR= MR*randf(1, 10);
         if (randf(0,1)<0.04) MR2= MR2*randf(1, 10);
 
-        agents[ai].initEvent(30,0,0.8,0); //green event means agent reproduced.
+        agents.get(ai).initEvent(30,0,0.8f,0); //green event means agent reproduced.
         for (int i=0;i<BABIES;i++) {
 
-            Agent a2 = agents[ai].reproduce(MR,MR2);
+            Agent a2 = agents.get(ai).reproduce(MR,MR2);
             a2.id= idcounter;
             idcounter++;
-            agents.push_back(a2);
+            agents.add(a2);
 
             //TODO fix recording
             //record this
@@ -606,12 +605,12 @@ public class World {
         addRandomBots(NUMBOTS);
     }
 
-    void setClosed(bool close)
+    void setClosed(boolean close)
     {
         CLOSED = close;
     }
 
-    bool isClosed() const
+    boolean isClosed()
     {
         return CLOSED;
     }
@@ -620,12 +619,12 @@ public class World {
     void processMouse(int button, int state, int x, int y)
     {
         if (state==0) {
-            float mind=1e10;
+            float mind= (float) 1e10;
             float mini=-1;
             float d;
 
             for (int i=0;i<agents.size();i++) {
-                d= pow(x-agents.get(i).pos.getValue(0),2)+pow(y-agents.get(i).pos.getValue(1),2);
+                d= (float) (pow(x-agents.get(i).pos.getValue(0),2)+pow(y-agents.get(i).pos.getValue(1),2));
                 if (d<mind) {
                     mind=d;
                     mini=i;
@@ -633,28 +632,25 @@ public class World {
             }
             //toggle selection of this agent
             for (int i=0;i<agents.size();i++) agents.get(i).selectflag=false;
-            agents[mini].selectflag= true;
-            agents[mini].printSelf();
+            agents.get((int) mini).selectflag= true;
+            agents.get((int) mini).printSelf();
         }
     }
 
-    void draw(View* view, bool drawfood)
+    void draw(View view, boolean drawfood)
     {
         //draw food
         if(drawfood) {
             for(int i=0;i<FW;i++) {
                 for(int j=0;j<FH;j++) {
-                    float f= 0.5*food[i][j]/FOODMAX;
+                    float f= (float) (0.5*food[i][j]/FOODMAX);
                     view.drawFood(i,j,f);
                 }
             }
         }
 
         //draw all agents
-        vector<Agent>::const_iterator it;
-        for ( it = agents.begin(); it != agents.end(); ++it) {
-            view.drawAgent(*it);
-        }
+        agents.forEach(view::drawAgent);
 
         view.drawMisc();
     }
@@ -671,12 +667,12 @@ public class World {
         return new int[]{numherb,numcarn};
     }
 
-    int numAgents() const
+    int numAgents()
     {
         return agents.size();
     }
 
-    int epoch() const
+    int epoch()
     {
         return current_epoch;
     }

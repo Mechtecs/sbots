@@ -41,7 +41,7 @@ public class Agent {
     float ir;
     float ig;
     float ib; //indicator colors
-    int selectflag; //is this agent selected?
+    boolean selectflag; //is this agent selected?
     float dfood; //what is change in health of this agent due to giving/receiving?
 
     float give;    //is this agent attempting to give food to other agent?
@@ -92,7 +92,7 @@ public class Agent {
         boost = false;
         indicator = 0;
         gencount = 0;
-        selectflag = 0;
+        selectflag = false;
         ir = 0;
         ig = 0;
         ib = 0;
