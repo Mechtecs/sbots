@@ -512,20 +512,19 @@ public class World {
 
     void addCarnivore()
     {
-        Agent a;
-        a.id= idcounter;
-        idcounter++;
+        Agent a = new Agent();
+        a.id= idcounter++;
         a.herbivore= randf(0, 0.1);
-        agents.push_back(a);
+        agents.add(a);
     }
 
     void addHerbivore()
     {
-        Agent a;
+        Agent a = new Agent();
         a.id= idcounter;
         idcounter++;
         a.herbivore= randf(0.9, 1);
-        agents.push_back(a);
+        agents.add(a);
     }
 
 
