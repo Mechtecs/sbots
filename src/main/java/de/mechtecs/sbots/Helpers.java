@@ -18,7 +18,6 @@ public class Helpers {
     }
 
 
-
     private static boolean deviateAvailable = false;    //	flag
     private static float storedDeviate;            //	deviate from previous calculation
 

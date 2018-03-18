@@ -158,12 +158,16 @@ public class Agent {
         //we want to spawn behind so that agents dont accidentally eat their young right away
         Float64VectorCustom fb = Float64VectorCustom.valueOf(BOTRADIUS, 0);
         fb = fb.rotate(-a2.angle);
-        a2.pos = a2.pos.plus(fb).plus(Float64VectorCustom.valueOf(randf(-BOTRADIUS*2,BOTRADIUS*2), randf(-BOTRADIUS*2,BOTRADIUS*2)));
+        a2.pos = a2.pos.plus(fb).plus(Float64VectorCustom.valueOf(randf(-BOTRADIUS * 2, BOTRADIUS * 2), randf(-BOTRADIUS * 2, BOTRADIUS * 2)));
 
-        if (a2.pos.get(0).doubleValue() < 0) a2.pos = Float64VectorCustom.valueOf(WIDTH + a2.pos.get(0).doubleValue(), a2.pos.get(1).doubleValue());
-        if (a2.pos.get(0).doubleValue() >= WIDTH) a2.pos = Float64VectorCustom.valueOf(a2.pos.get(0).doubleValue() - WIDTH, a2.pos.get(1).doubleValue());
-        if (a2.pos.get(1).doubleValue() < 0) a2.pos = Float64VectorCustom.valueOf(a2.pos.get(0).doubleValue(), HEIGHT + a2.pos.get(1).doubleValue());
-        if (a2.pos.get(1).doubleValue() >= HEIGHT) a2.pos = Float64VectorCustom.valueOf(a2.pos.get(0).doubleValue(), a2.pos.get(1).doubleValue() - HEIGHT);
+        if (a2.pos.get(0).doubleValue() < 0)
+            a2.pos = Float64VectorCustom.valueOf(WIDTH + a2.pos.get(0).doubleValue(), a2.pos.get(1).doubleValue());
+        if (a2.pos.get(0).doubleValue() >= WIDTH)
+            a2.pos = Float64VectorCustom.valueOf(a2.pos.get(0).doubleValue() - WIDTH, a2.pos.get(1).doubleValue());
+        if (a2.pos.get(1).doubleValue() < 0)
+            a2.pos = Float64VectorCustom.valueOf(a2.pos.get(0).doubleValue(), HEIGHT + a2.pos.get(1).doubleValue());
+        if (a2.pos.get(1).doubleValue() >= HEIGHT)
+            a2.pos = Float64VectorCustom.valueOf(a2.pos.get(0).doubleValue(), a2.pos.get(1).doubleValue() - HEIGHT);
 
         a2.gencount++;
         a2.repcounter = a2.herbivore * randf(REPRATEH - 0.1, REPRATEH + 0.1) + (1 - a2.herbivore) * randf(REPRATEC - 0.1, REPRATEC + 0.1);
@@ -173,8 +177,8 @@ public class Agent {
         a2.MUTRATE2 = this.MUTRATE2;
         if (randf(0, 1) < 0.1) a2.MUTRATE1 = (float) randn(this.MUTRATE1, METAMUTRATE1);
         if (randf(0, 1) < 0.1) a2.MUTRATE2 = (float) randn(this.MUTRATE2, METAMUTRATE2);
-        if (this.MUTRATE1< 0.001)this.MUTRATE1 = 0.001f;
-        if (this.MUTRATE2< 0.02)this.MUTRATE2 = 0.02f;
+        if (this.MUTRATE1 < 0.001) this.MUTRATE1 = 0.001f;
+        if (this.MUTRATE2 < 0.02) this.MUTRATE2 = 0.02f;
         a2.herbivore = (float) cap(randn(this.herbivore, 0.03));
         if (randf(0, 1) < MR * 5) a2.clockf1 = (float) randn(a2.clockf1, MR2);
         if (a2.clockf1 < 2) a2.clockf1 = 2;
@@ -246,34 +250,34 @@ public class Agent {
         if (other.gencount < anew.gencount) anew.gencount = other.gencount;
 
         //agent heredity attributes
-        anew.clockf1 = randf(0, 1) < 0.5 ? this.clockf1:
-        other.clockf1;
-        anew.clockf2 = randf(0, 1) < 0.5 ? this.clockf2:
-        other.clockf2;
-        anew.herbivore = randf(0, 1) < 0.5 ? this.herbivore:
-        other.herbivore;
-        anew.MUTRATE1 = randf(0, 1) < 0.5 ? this.MUTRATE1:
-        other.MUTRATE1;
-        anew.MUTRATE2 = randf(0, 1) < 0.5 ? this.MUTRATE2:
-        other.MUTRATE2;
-        anew.temperature_preference = randf(0, 1) < 0.5 ? this.temperature_preference:
-        other.temperature_preference;
+        anew.clockf1 = randf(0, 1) < 0.5 ? this.clockf1 :
+                other.clockf1;
+        anew.clockf2 = randf(0, 1) < 0.5 ? this.clockf2 :
+                other.clockf2;
+        anew.herbivore = randf(0, 1) < 0.5 ? this.herbivore :
+                other.herbivore;
+        anew.MUTRATE1 = randf(0, 1) < 0.5 ? this.MUTRATE1 :
+                other.MUTRATE1;
+        anew.MUTRATE2 = randf(0, 1) < 0.5 ? this.MUTRATE2 :
+                other.MUTRATE2;
+        anew.temperature_preference = randf(0, 1) < 0.5 ? this.temperature_preference :
+                other.temperature_preference;
 
-        anew.smellmod = randf(0, 1) < 0.5 ? this.smellmod:
-        other.smellmod;
-        anew.soundmod = randf(0, 1) < 0.5 ? this.soundmod:
-        other.soundmod;
-        anew.hearmod = randf(0, 1) < 0.5 ? this.hearmod:
-        other.hearmod;
-        anew.eyesensmod = randf(0, 1) < 0.5 ? this.eyesensmod:
-        other.eyesensmod;
-        anew.bloodmod = randf(0, 1) < 0.5 ? this.bloodmod:
-        other.bloodmod;
+        anew.smellmod = randf(0, 1) < 0.5 ? this.smellmod :
+                other.smellmod;
+        anew.soundmod = randf(0, 1) < 0.5 ? this.soundmod :
+                other.soundmod;
+        anew.hearmod = randf(0, 1) < 0.5 ? this.hearmod :
+                other.hearmod;
+        anew.eyesensmod = randf(0, 1) < 0.5 ? this.eyesensmod :
+                other.eyesensmod;
+        anew.bloodmod = randf(0, 1) < 0.5 ? this.bloodmod :
+                other.bloodmod;
 
-        anew.eyefov = randf(0, 1) < 0.5 ? this.eyefov:
-        other.eyefov;
-        anew.eyedir = randf(0, 1) < 0.5 ? this.eyedir:
-        other.eyedir;
+        anew.eyefov = randf(0, 1) < 0.5 ? this.eyefov :
+                other.eyefov;
+        anew.eyedir = randf(0, 1) < 0.5 ? this.eyedir :
+                other.eyedir;
 
         anew.brain = this.brain.crossover(other.brain);
 

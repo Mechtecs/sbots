@@ -23,7 +23,7 @@ import java.util.stream.DoubleStream;
 
 /**
  * <p> This class represents an optimized {@link Vector vector} implementation
- *     for 64 bits floating point elements.</p>
+ * for 64 bits floating point elements.</p>
  *
  * @author <a href="mailto:jean-marie@dautelle.com">Jean-Marie Dautelle</a>
  * @version 3.3, January 2, 2007
@@ -32,10 +32,10 @@ public final class Float64VectorCustom extends Vector<Float64> implements
         VectorSpaceNormed<Vector<Float64>, Float64> {
 
     public Float64VectorCustom rotate(double angle) {
-        double c= Math.cos(angle);
-        double s= Math.sin(angle);
-        double x2= this._values[0]*c - this._values[1]*s;
-        return Float64VectorCustom.valueOf(x2, _values[0]*s + _values[1]*c);
+        double c = Math.cos(angle);
+        double s = Math.sin(angle);
+        double x2 = this._values[0] * c - this._values[1] * s;
+        return Float64VectorCustom.valueOf(x2, _values[0] * s + _values[1] * c);
     }
 
     public float length() {
@@ -60,14 +60,13 @@ public final class Float64VectorCustom extends Vector<Float64> implements
     }
 
 
-
     /**
      * Holds the default XML representation. For example:
      * [code]
-     *    <Float64Vector dimension="2">
-     *        <Float64 value="1.0" />
-     *        <Float64 value="0.0" />
-     *    </Float64Vector>[/code]
+     * <Float64Vector dimension="2">
+     * <Float64 value="1.0" />
+     * <Float64 value="0.0" />
+     * </Float64Vector>[/code]
      */
     protected static final XMLFormat<Float64VectorCustom> XML = new XMLFormat<Float64VectorCustom>(
             Float64VectorCustom.class) {
@@ -85,8 +84,8 @@ public final class Float64VectorCustom extends Vector<Float64> implements
         @Override
         public void read(InputElement xml, Float64VectorCustom V)
                 throws XMLStreamException {
-            for (int i=0, n=V._dimension; i < n;) {
-                V._values[i++] = ((Float64)xml.getNext()).doubleValue();
+            for (int i = 0, n = V._dimension; i < n; ) {
+                V._values[i++] = ((Float64) xml.getNext()).doubleValue();
             }
             if (xml.hasNext())
                 throw new XMLStreamException("Too many elements");
@@ -96,7 +95,7 @@ public final class Float64VectorCustom extends Vector<Float64> implements
         public void write(Float64VectorCustom V, OutputElement xml)
                 throws XMLStreamException {
             xml.setAttribute("dimension", V._dimension);
-            for (int i = 0, n=V._dimension; i < n;) {
+            for (int i = 0, n = V._dimension; i < n; ) {
                 xml.add(V.get(i++));
             }
         }
@@ -147,7 +146,7 @@ public final class Float64VectorCustom extends Vector<Float64> implements
     }
 
     /**
-     * Returns a new vector holding the elements from the specified 
+     * Returns a new vector holding the elements from the specified
      * collection.
      *
      * @param elements the collection of floating-points numbers.
@@ -168,7 +167,7 @@ public final class Float64VectorCustom extends Vector<Float64> implements
      * Returns a {@link Float64VectorCustom} instance equivalent to the
      * specified vector.
      *
-     * @param that the vector to convert. 
+     * @param that the vector to convert.
      * @return <code>that</code> or new equivalent Float64Vector.
      */
     public static Float64VectorCustom valueOf(Vector<Float64> that) {
@@ -186,7 +185,7 @@ public final class Float64VectorCustom extends Vector<Float64> implements
     /**
      * Returns the value of a floating point number from this vector (fast).
      *
-     * @param  i the floating point number index.
+     * @param i the floating point number index.
      * @return the value of the floating point number at <code>i</code>.
      * @throws IndexOutOfBoundsException <code>(i < 0) || (i >= dimension())</code>
      */
@@ -197,7 +196,7 @@ public final class Float64VectorCustom extends Vector<Float64> implements
     }
 
     /**
-     * Returns the Euclidian norm of this vector (square root of the 
+     * Returns the Euclidian norm of this vector (square root of the
      * dot product of this vector and itself).
      *
      * @return <code>sqrt(this · this)</code>.
@@ -213,7 +212,7 @@ public final class Float64VectorCustom extends Vector<Float64> implements
      */
     public double normValue() {
         double normSquared = 0;
-        for (int i = _dimension; --i >= 0;) {
+        for (int i = _dimension; --i >= 0; ) {
             double values = _values[i];
             normSquared += values * values;
         }
@@ -237,7 +236,7 @@ public final class Float64VectorCustom extends Vector<Float64> implements
         Float64VectorCustom V = FACTORY.array(_dimension);
         V._dimension = _dimension;
         for (int i = 0; i < _dimension; i++) {
-            V._values[i] = - _values[i];
+            V._values[i] = -_values[i];
         }
         return V;
     }
@@ -280,7 +279,7 @@ public final class Float64VectorCustom extends Vector<Float64> implements
     /**
      * Equivalent to <code>this.times(Float64.valueOf(k))</code>
      *
-     * @param k the coefficient. 
+     * @param k the coefficient.
      * @return <code>this * k</code>
      */
     public Float64VectorCustom times(double k) {
@@ -318,7 +317,6 @@ public final class Float64VectorCustom extends Vector<Float64> implements
         double z = _values[0] * T._values[1] - _values[1] * T._values[0];
         return Float64VectorCustom.valueOf(x, y, z);
     }
-
 
 
     @Override
