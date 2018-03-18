@@ -484,7 +484,7 @@ public class World {
         IntStream.range(0, num).mapToObj(value -> new Agent()).map(a -> {a.id = idcounter++; return a;}).collect(Collectors.toCollection(() -> agents));
     }
 
-    void positionOfInterest(int type, float &xi, float &yi) {
+    void positionOfInterest(int type, Float xi, Float yi) {
         if(type==1){
             //the interest of type 1 is the oldest agent
             int maxage=-1;
@@ -493,8 +493,8 @@ public class World {
                 if(agents.get(i).age>maxage) { maxage = agents.get(i).age; maxi=i; }
             }
             if(maxi!=-1) {
-                xi = agents[maxi].pos.getValue(0);
-                yi = agents[maxi].pos.getValue(1);
+                xi = (float) agents.get(maxi).pos.getValue(0);
+                yi = (float) agents.get(maxi).pos.getValue(1);
             }
         } else if(type==2){
             //interest of type 2 is the selected agent
@@ -503,8 +503,8 @@ public class World {
                 if(agents.get(i).selectflag==1) {maxi=i; break; }
             }
             if(maxi!=-1) {
-                xi = agents[maxi].pos.getValue(0);
-                yi = agents[maxi].pos.getValue(1);
+                xi = (float) agents.get(maxi).pos.getValue(0);
+                yi = (float) agents.get(maxi).pos.getValue(1);
             }
         }
 
