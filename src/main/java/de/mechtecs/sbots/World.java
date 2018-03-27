@@ -72,11 +72,9 @@ public class World {
             current_epoch++;
         }
         if (modcounter % FOODADDFREQ == 0) {
-            for (int i = 0; i < 10; i++) {
-                fx = randi(0, FW - 1);
-                fy = randi(0, FH - 1);
-                food[fx][fy] = FOODMAX;
-            }
+            fx = randi(0, FW - 1);
+            fy = randi(0, FH - 1);
+            food[fx][fy] = FOODMAX;
         }
 
         //reset any counter variables per agent
