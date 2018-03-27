@@ -1,23 +1,22 @@
 package de.mechtecs.sbots;
 
 
-import org.lwjgl.*;
-import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.*;
-import org.lwjgl.system.*;
+import org.lwjgl.Version;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.system.MemoryStack;
 
-import java.nio.*;
+import java.nio.IntBuffer;
 
-import static de.mechtecs.sbots.Constants.CZ;
-import static de.mechtecs.sbots.Constants.WHEIGHT;
-import static de.mechtecs.sbots.Constants.WWIDTH;
+import static de.mechtecs.sbots.Constants.*;
 import static de.mechtecs.sbots.Helpers.cap;
-import static org.lwjgl.glfw.Callbacks.*;
+import static java.lang.Math.*;
+import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.system.MemoryStack.*;
-import static org.lwjgl.system.MemoryUtil.*;
-import static java.lang.Math.*;
+import static org.lwjgl.system.MemoryStack.stackPush;
+import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class LWJGLView implements View {
     private long window;
@@ -72,7 +71,7 @@ public class LWJGLView implements View {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // the window will be resizable
 
         // Create the window
-        window = glfwCreateWindow(640, 480, "Hello World!", NULL, NULL);
+        window = glfwCreateWindow(WWIDTH, WHEIGHT, "Hello World!", NULL, NULL);
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
@@ -163,8 +162,8 @@ public class LWJGLView implements View {
             glScalef(scalemult, scalemult, 1.0f);
             glTranslatef(xtranslate, ytranslate, 0);
 
-            this.drawAgents();
             this.drawFood();
+            this.drawAgents();
 
             glPopMatrix();
             glfwSwapBuffers(window); // swap the color buffers
@@ -236,10 +235,11 @@ public class LWJGLView implements View {
             glColor3f(0.5f, 0.5f, 0.5f);
             for (int q = 0; q < Constants.NUMEYES; q++) {
                 glVertex3f(agent.pos.get(0).floatValue(), agent.pos.get(1).floatValue(), 0);
+                //glVertex3f(agent.pos.get(0).floatValue(), agent.pos.get(1).floatValue(), 0);
                 float aa = agent.angle + agent.eyedir.get(q).floatValue();
                 glVertex3f(
                         (float) (agent.pos.get(0).floatValue() + ((Constants.BOTRADIUS * 4) * cos(aa))),
-                        (float) (agent.pos.get(0).floatValue() + ((Constants.BOTRADIUS * 4) * sin(aa))),
+                        (float) (agent.pos.get(1).floatValue() + ((Constants.BOTRADIUS * 4) * sin(aa))),
                         0
                 );
             }
