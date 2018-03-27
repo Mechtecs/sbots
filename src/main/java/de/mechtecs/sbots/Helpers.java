@@ -1,5 +1,7 @@
 package de.mechtecs.sbots;
 
+import java.util.Random;
+
 import static java.lang.Math.log;
 import static java.lang.Math.random;
 import static java.lang.Math.sqrt;
@@ -13,8 +15,9 @@ public class Helpers {
         return (float) (((b - a) * (random())) + a);
     }
 
-    public static int randi(int a, int b) {
-        return (int) ((random() % (b - a)) + a);
+    private static Random rand = new Random();
+    public static int randi(int min, int max) {
+        return Helpers.rand.nextInt((max - min) + 1) + min;
     }
 
 

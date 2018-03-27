@@ -1,5 +1,6 @@
 package de.mechtecs.sbots;
 
+import de.mechtecs.sbots.brain.DWRAONBrain;
 import de.mechtecs.sbots.math.Float64VectorCustom;
 
 import java.util.ArrayList;
@@ -115,6 +116,8 @@ public class Agent {
         spiked = false;
 
 
+        brain = new DWRAONBrain();
+        mutations = new ArrayList<>();
         in = Float64VectorCustom.valueOf(new double[INPUTSIZE]);
         out = Float64VectorCustom.valueOf(new double[OUTPUTSIZE]);
 
@@ -238,6 +241,9 @@ public class Agent {
         a2.brain = this.brain;
         a2.brain.mutate(MR, MR2);
 
+        if (a2.herbivore > 0.5) System.out.println("Herbivore");
+        if (a2.herbivore <= 0.5) System.out.println("Carnivore");
+
         return a2;
     }
 
@@ -280,6 +286,10 @@ public class Agent {
                 other.eyedir;
 
         anew.brain = this.brain.crossover(other.brain);
+
+        if (anew.brain == null) {
+            System.out.println("null checker");
+        }
 
         return anew;
     }

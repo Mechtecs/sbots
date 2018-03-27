@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-
 import static de.mechtecs.sbots.Constants.*;
 import static de.mechtecs.sbots.Helpers.*;
 import static java.lang.Math.*;
@@ -22,17 +21,18 @@ public class World {
     private int current_epoch = 0;
     private int idcounter = 0;
 
-    private ArrayList<Agent> agents;
+    public ArrayList<Agent> agents;
 
     // food
     private int FW = WIDTH / CZ;
     private int FH = HEIGHT / CZ;
     private int fx;
     private int fy;
-    private float food[][] = new float[WIDTH / CZ][HEIGHT / CZ];
+    public float food[][] = new float[WIDTH / CZ][HEIGHT / CZ];
     public boolean CLOSED = false; //if environment is closed, then no random bots are added per time interval
 
     public World() {
+        this.agents = new ArrayList<>();
         addRandomBots(NUMBOTS);
         //inititalize food layer
 
@@ -72,9 +72,11 @@ public class World {
             current_epoch++;
         }
         if (modcounter % FOODADDFREQ == 0) {
-            fx = randi(0, FW);
-            fy = randi(0, FH);
-            food[fx][fy] = FOODMAX;
+            for (int i = 0; i < 10; i++) {
+                fx = randi(0, FW - 1);
+                fy = randi(0, FH - 1);
+                food[fx][fy] = FOODMAX;
+            }
         }
 
         //reset any counter variables per agent
@@ -91,34 +93,34 @@ public class World {
         //read output and process consequences of bots on environment. requires out[]
         processOutputs();
 
-        //process bots: health and deaths
-        for (int i = 0; i < agents.size(); i++) {
+        //process agents: health and deaths
+        for (Agent agent : agents) {
             float baseloss = 0.0002f; // + 0.0001*(abs(agents.get(i).w1) + abs(agents.get(i).w2))/2;
             //if (agents.get(i).w1<0.1 && agents.get(i).w2<0.1) baseloss=0.0001; //hibernation :p
             //baseloss += 0.00005*agents.get(i).soundmul; //shouting costs energy. just a tiny bit
 
-            if (agents.get(i).boost) {
+            if (agent.boost) {
                 //boost carries its price, and it's pretty heavy!
-                agents.get(i).health -= baseloss * BOOSTSIZEMULT * 1.3;
+                agent.health -= baseloss * BOOSTSIZEMULT * 1.3;
             } else {
-                agents.get(i).health -= baseloss;
+                agent.health -= baseloss;
             }
         }
 
         //process temperature preferences
-        for (int i = 0; i < agents.size(); i++) {
+        for (Agent agent : agents) {
 
             //calculate temperature at the agents spot. (based on distance from equator)
-            float dd = (float) (2.0 * abs(agents.get(i).pos.get(0).doubleValue() / WIDTH - 0.5));
-            float discomfort = abs(dd - agents.get(i).temperature_preference);
+            float dd = (float) (2.0 * abs(agent.pos.get(0).doubleValue() / WIDTH - 0.5));
+            float discomfort = abs(dd - agent.temperature_preference);
             discomfort = discomfort * discomfort;
             if (discomfort < 0.08) discomfort = 0;
-            agents.get(i).health -= TEMPERATURE_DISCOMFORT * discomfort;
+            agent.health -= TEMPERATURE_DISCOMFORT * discomfort;
         }
 
         //process indicator (used in drawing)
-        for (int i = 0; i < agents.size(); i++) {
-            if (agents.get(i).indicator > 0) agents.get(i).indicator -= 1;
+        for (Agent agent : agents) {
+            if (agent.indicator > 0) agent.indicator -= 1;
         }
 
         //remove dead agents.
@@ -388,25 +390,25 @@ public class World {
         }
 
         //process food intake for herbivors
-        for (int i = 0; i < agents.size(); i++) {
+        for (Agent agent : agents) {
 
-            int cx = (int) agents.get(i).pos.getValue(0) / CZ;
-            int cy = (int) agents.get(i).pos.getValue(1) / CZ;
+            int cx = (int) agent.pos.getValue(0) / CZ;
+            int cy = (int) agent.pos.getValue(1) / CZ;
             float f = food[cx][cy];
-            if (f > 0 && agents.get(i).health < 2) {
+            if (f > 0 && agent.health < 2) {
                 //agent eats the food
                 float itk = min(f, FOODINTAKE);
-                float speedmul = (float) ((1 - (abs(agents.get(i).w1) + abs(agents.get(i).w2)) / 2) * 0.7 + 0.3);
-                itk = itk * agents.get(i).herbivore * speedmul; //herbivores gain more from ground food
-                agents.get(i).health += itk;
-                agents.get(i).repcounter -= 3 * itk;
+                float speedmul = (float) ((1 - (abs(agent.w1) + abs(agent.w2)) / 2) * 0.7 + 0.3);
+                itk = itk * agent.herbivore * speedmul; //herbivores gain more from ground food
+                agent.health += itk;
+                agent.repcounter -= 3 * itk;
                 food[cx][cy] -= min(f, FOODWASTE);
             }
         }
 
         //process giving and receiving of food
-        for (int i = 0; i < agents.size(); i++) {
-            agents.get(i).dfood = 0;
+        for (Agent agent : agents) {
+            agent.dfood = 0;
         }
         for (int i = 0; i < agents.size(); i++) {
             if (agents.get(i).give > 0.5) {
@@ -474,15 +476,13 @@ public class World {
 
     // Multi-Threaded
     void brainsTick() {
-        this.agents.parallelStream().forEach(a -> a.tick());
+        this.agents.stream().forEach(Agent::tick);
     }
 
     void addRandomBots(int num) {
-        IntStream.range(0, num).mapToObj(value -> new Agent()).map(a -> {
-            a.id = idcounter++;
-            return a;
-        }).collect(Collectors.toCollection(() -> agents));
+        IntStream.range(0, num).mapToObj(value -> new Agent()).peek(a -> a.id = idcounter++).collect(Collectors.toCollection(() -> agents));
     }
+
 
     void positionOfInterest(int type, Float xi, Float yi) {
         if (type == 1) {
@@ -535,8 +535,8 @@ public class World {
     void addNewByCrossover() {
 
         //find two success cases
-        int i1 = randi(0, agents.size());
-        int i2 = randi(0, agents.size());
+        int i1 = randi(0, agents.size() - 1);
+        int i2 = randi(0, agents.size() - 1);
         for (int i = 0; i < agents.size(); i++) {
             if (agents.get(i).age > agents.get(i1).age && randf(0, 1) < 0.1) {
                 i1 = i;
@@ -579,24 +579,32 @@ public class World {
         }
     }
 
+    long lastTimestamp = System.currentTimeMillis();
     void writeReport() {
+        long currentTimestamp = System.currentTimeMillis();
         //TODO fix reporting
         //save all kinds of nice data stuff
-//     int numherb=0;
-//     int numcarn=0;
-//     int topcarn=0;
-//     int topherb=0;
-//     for(int i=0;i<agents.size();i++){
-//         if(agents.get(i).herbivore>0.5) numherb++;
-//         else numcarn++;
-//
-//         if(agents.get(i).herbivore>0.5 && agents.get(i).gencount>topherb) topherb= agents.get(i).gencount;
-//         if(agents.get(i).herbivore<0.5 && agents.get(i).gencount>topcarn) topcarn= agents.get(i).gencount;
-//     }
-//
-//     FILE* fp = fopen("report.txt", "a");
-//     fprintf(fp, "%i %i %i %i\n", numherb, numcarn, topcarn, topherb);
-//     fclose(fp);
+        int numherb = 0;
+        int numcarn = 0;
+        int topcarn = 0;
+        int topherb = 0;
+
+        Agent minRep = agents.get(0);
+
+        for (Agent agent : agents) {
+            if (agent.herbivore > 0.5) numherb++;
+            else numcarn++;
+
+            if (agent.herbivore > 0.5 && agent.gencount > topherb) topherb = agent.gencount;
+            if (agent.herbivore < 0.5 && agent.gencount > topcarn) topcarn = agent.gencount;
+
+            if (agent.repcounter < minRep.repcounter)
+                minRep = agent;
+        }
+
+        System.out.format("NumHerb: %d NumCarn: %d TopCarn: %d TopHerb: %d Time: %f MinRepCounter & Health: %f & %f", numherb, numcarn, topcarn, topherb, (float) ((currentTimestamp - lastTimestamp)), minRep.repcounter, minRep.health);
+        System.out.println();
+        lastTimestamp = System.currentTimeMillis();
     }
 
 
@@ -626,6 +634,7 @@ public class World {
         }
     }
 
+    /*
     void draw(View view, boolean drawfood) {
         //draw food
         if (drawfood) {
@@ -642,6 +651,7 @@ public class World {
 
         view.drawMisc();
     }
+    */
 
     public int[] numHerbCarnivores() {
         AtomicInteger numherb = new AtomicInteger();
