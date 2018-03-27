@@ -8,7 +8,7 @@ public class Constants {
 
     public static final int CZ = 50; //cell size in pixels, for food squares. Should divide well into Width Height
 
-    public static final int NUMBOTS = 70; //initially, and minimally
+    public static final int NUMBOTS = 250; //initially, and minimally
     public static final float BOTRADIUS = 10f; //for drawing
     public static final float BOTSPEED = 0.3f;
     public static final float SPIKESPEED = 0.005f; //how quickly can attack spike go up?
