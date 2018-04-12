@@ -8,7 +8,7 @@ public class Constants {
 
     public static final int CZ = 50; //cell size in pixels, for food squares. Should divide well into Width Height
 
-    public static final int NUMBOTS = 250; //initially, and minimally
+    public static final int NUMBOTS = 100; //initially, and minimally
     public static final float BOTRADIUS = 10f; //for drawing
     public static final float BOTSPEED = 0.3f;
     public static final float SPIKESPEED = 0.005f; //how quickly can attack spike go up?
@@ -42,5 +42,5 @@ public class Constants {
     public static final int BRAINSIZE = 200;
     public static final int CONNS = 4;
 
-    public static final boolean BDEBUG = true;
+    public static final boolean BDEBUG = false;
 }

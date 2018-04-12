@@ -25,6 +25,9 @@ public class LWJGLView implements View {
     private float xtranslate = 0.0f;
     private float ytranslate = 0.0f;
     private boolean mousePressed = false;
+    private boolean mousePressedFirst = true;
+    private double mouseLastX;
+    private double mouseLastY;
 
     public LWJGLView() {
         scalemult = 0.2f;
@@ -81,10 +84,20 @@ public class LWJGLView implements View {
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
         });
 
-        glfwSetCursorPosCallback(window, (window, v, v1) -> {
+        glfwSetCursorPosCallback(window, (window, mouseX, mouseY) -> {
+            //mouseX = (mouseX - (WWIDTH/2))/scalemult;
+            //mouseY = (mouseY - (WHEIGHT/2))/scalemult;
+
             if (mousePressed) {
-                System.out.println(v);
-                System.out.println(v1);
+                if (mousePressedFirst) {
+                    mousePressedFirst = false;
+                } else {
+                    xtranslate += (mouseX - mouseLastX);
+                    ytranslate += (mouseY - mouseLastY);
+                }
+
+                mouseLastX = mouseX;
+                mouseLastY = mouseY;
             }
         });
 
@@ -92,7 +105,10 @@ public class LWJGLView implements View {
             if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE && mousePressed) {
                 mousePressed = false;
             } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !mousePressed) {
+                mouseLastX = -1.0d;
+                mouseLastY = -1.0d;
                 mousePressed = true;
+                mousePressedFirst = true;
             }
         });
 
@@ -235,7 +251,6 @@ public class LWJGLView implements View {
             glColor3f(0.5f, 0.5f, 0.5f);
             for (int q = 0; q < Constants.NUMEYES; q++) {
                 glVertex3f(agent.pos.get(0).floatValue(), agent.pos.get(1).floatValue(), 0);
-                //glVertex3f(agent.pos.get(0).floatValue(), agent.pos.get(1).floatValue(), 0);
                 float aa = agent.angle + agent.eyedir.get(q).floatValue();
                 glVertex3f(
                         (float) (agent.pos.get(0).floatValue() + ((Constants.BOTRADIUS * 4) * cos(aa))),

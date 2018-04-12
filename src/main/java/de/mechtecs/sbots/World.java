@@ -204,9 +204,7 @@ public class World {
         float PI38 = 3 * PI8; //3pi/8/2
         float PI4 = (float) (Math.PI / 4);
 
-        for (int i = 0; i < agents.size(); i++) {
-            Agent a = agents.get(i);
-
+        agents.parallelStream().forEach(a -> {
             //HEALTH
             a.in.set(11, cap(a.health / 2)); //divide by 2 since health is in [0,2]
 
@@ -228,9 +226,9 @@ public class World {
             //BLOOD ESTIMATOR
             float blood = 0;
 
-            for (int j = 0; j < agents.size(); j++) {
-                if (i == j) continue;
-                Agent a2 = agents.get(j);
+            for (Agent a2 : agents) {
+                if (a.id == a2.id)
+                    continue;
 
                 if (a.pos.getValue(0) < a2.pos.getValue(0) - DIST || a.pos.getValue(0) > a2.pos.getValue(0) + DIST
                         || a.pos.getValue(1) > a2.pos.getValue(1) + DIST || a.pos.getValue(1) < a2.pos.getValue(1) - DIST)
@@ -279,7 +277,7 @@ public class World {
                     if (diff4 < PI38) {
                         float mul4 = ((PI38 - diff4) / PI38) * ((DIST - d) / DIST);
                         //if we can see an agent close with both eyes in front of us
-                        blood += mul4 * (1 - agents.get(j).health / 2); //remember: health is in [0 2]
+                        blood += mul4 * (1 - a2.health / 2); //remember: health is in [0 2]
                         //agents with high life dont bleed. low life makes them bleed more
                     }
                 }
@@ -322,15 +320,15 @@ public class World {
             a.in.set(23, cap(g[3]));
             a.in.set(24, cap(b[3]));
 
-        }
+        });
     }
 
     void processOutputs() {
         //assign meaning
         //LEFT RIGHT R G B SPIKE BOOST SOUND_MULTIPLIER GIVING
         // 0    1    2 3 4   5     6         7             8
-        for (int i = 0; i < agents.size(); i++) {
-            Agent a = agents.get(i);
+        //spike length should slowly tend towards out[5]
+        agents.parallelStream().forEach(a -> {
             a.red = (float) a.out.getValue(2);
             a.gre = (float) a.out.getValue(3);
             a.blu = (float) a.out.getValue(4);
@@ -339,20 +337,13 @@ public class World {
             a.boost = (float) a.out.getValue(6) > 0.5;
             a.soundmul = (float) a.out.getValue(7);
             a.give = (float) a.out.getValue(8);
-
-            //spike length should slowly tend towards out[5]
             float g = (float) a.out.getValue(5);
             if (a.spikeLength < g)
                 a.spikeLength += SPIKESPEED;
             else if (a.spikeLength > g)
                 a.spikeLength = g; //its easy to retract spike, just hard to put it up
-        }
 
-        //move bots
-        //#pragma omp parallel for
-        for (int i = 0; i < agents.size(); i++) {
-            Agent a = agents.get(i);
-
+            // move bots
             Float64VectorCustom v = Float64VectorCustom.valueOf(BOTRADIUS / 2, 0);
             v = v.rotate(a.angle + Math.PI / 2);
 
@@ -370,12 +361,12 @@ public class World {
 
             //move bots
             Float64VectorCustom vv = w2p.minus(a.pos);
-            vv.rotate(-BW1);
+            vv = vv.rotate(-BW1);
             a.pos = w2p.minus(vv);
             a.angle -= BW1;
             if (a.angle < -Math.PI) a.angle = (float) (Math.PI - (-Math.PI - a.angle));
             vv = a.pos.minus(w1p);
-            vv.rotate(BW2);
+            vv = vv.rotate(BW2);
             a.pos = w1p.plus(vv);
             a.angle += BW2;
             if (a.angle > Math.PI) a.angle = (float) (-Math.PI + (a.angle - Math.PI));
@@ -385,7 +376,7 @@ public class World {
             if (a.pos.getValue(0) >= WIDTH) a.pos.set(0, (float) (a.pos.getValue(0) - WIDTH));
             if (a.pos.getValue(1) < 0) a.pos.set(1, (float) (HEIGHT + a.pos.getValue(1)));
             if (a.pos.getValue(1) >= HEIGHT) a.pos.set(1, (float) (a.pos.getValue(1) - HEIGHT));
-        }
+        });
 
         //process food intake for herbivors
         for (Agent agent : agents) {
@@ -405,19 +396,18 @@ public class World {
         }
 
         //process giving and receiving of food
-        for (Agent agent : agents) {
-            agent.dfood = 0;
-        }
         for (int i = 0; i < agents.size(); i++) {
-            if (agents.get(i).give > 0.5) {
+            Agent agent = agents.get(i);
+            agent.dfood = 0;
+            if (agent.give > 0.5) {
                 for (int j = 0; j < agents.size(); j++) {
-                    float d = (agents.get(i).pos.minus(agents.get(j).pos)).length();
+                    float d = (agent.pos.minus(agents.get(j).pos)).length();
                     if (d < FOOD_SHARING_DISTANCE) {
                         //initiate transfer
                         if (agents.get(j).health < 2) agents.get(j).health += FOODTRANSFER;
-                        agents.get(i).health -= FOODTRANSFER;
+                        agent.health -= FOODTRANSFER;
                         agents.get(j).dfood += FOODTRANSFER; //only for drawing
-                        agents.get(i).dfood -= FOODTRANSFER;
+                        agent.dfood -= FOODTRANSFER;
                     }
                 }
             }
@@ -440,7 +430,7 @@ public class World {
                     if (d < 2 * BOTRADIUS) {
                         //these two are in collision and agent i has extended spike and is going decent fast!
                         Float64VectorCustom v = Float64VectorCustom.valueOf(1, 0);
-                        v.rotate(agents.get(i).angle);
+                        v = v.rotate(agents.get(i).angle);
                         float diff = v.angle_between(agents.get(j).pos.minus(agents.get(i).pos));
                         if (abs(diff) < Math.PI / 8) {
                             //bot i is also properly aligned!!! that's a hit
@@ -456,7 +446,7 @@ public class World {
                             agents.get(i).initEvent(40 * DMG, 1, 1, 0); //yellow event means bot has spiked other bot. nice!
 
                             Float64VectorCustom v2 = Float64VectorCustom.valueOf(1, 0);
-                            v2.rotate(agents.get(j).angle);
+                            v2 = v2.rotate(agents.get(j).angle);
                             float adiff = v.angle_between(v2);
                             if (abs(adiff) < Math.PI / 2) {
                                 //this was attack from the back. Retract spike of the other agent (startle!)
@@ -474,7 +464,7 @@ public class World {
 
     // Multi-Threaded
     void brainsTick() {
-        this.agents.stream().forEach(Agent::tick);
+        this.agents.parallelStream().forEach(Agent::tick);
     }
 
     void addRandomBots(int num) {
