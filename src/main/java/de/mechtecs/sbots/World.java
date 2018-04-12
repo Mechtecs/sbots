@@ -568,6 +568,7 @@ public class World {
     }
 
     long lastTimestamp = System.currentTimeMillis();
+
     void writeReport() {
         long currentTimestamp = System.currentTimeMillis();
         //TODO fix reporting
@@ -610,16 +611,14 @@ public class World {
     }
 
 
-    void processMouse(int button, int state, int x, int y) {
-        if (state == 0) {
-            Float64VectorCustom click = Float64VectorCustom.valueOf(x, y);
-            Agent closest = (Agent) agents.stream().sorted((a1, a2) -> Float.compare(a1.distance(click), a2.distance(click))).toArray()[0];
+    Agent processMouse(int x, int y) {
+        Float64VectorCustom click = Float64VectorCustom.valueOf(x, y);
+        Agent closest = (Agent) agents.stream().sorted((a1, a2) -> Float.compare(a1.distance(click), a2.distance(click))).toArray()[0];
 
-            //toggle selection of this agent
-            for (Agent agent : agents) agent.selectflag = false;
-            closest.selectflag = true;
-            closest.printSelf();
-        }
+        //toggle selection of this agent
+        for (Agent agent : agents) agent.selectflag = false;
+        closest.selectflag = true;
+        return closest;
     }
 
     /*

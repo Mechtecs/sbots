@@ -28,6 +28,10 @@ public class LWJGLView implements View {
     private boolean mousePressedFirst = true;
     private double mouseLastX;
     private double mouseLastY;
+    private int wx;
+    private int wy;
+    private boolean following = false;
+    private Agent selectedAgent;
 
     public LWJGLView() {
         scalemult = 0.2f;
@@ -74,7 +78,7 @@ public class LWJGLView implements View {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // the window will be resizable
 
         // Create the window
-        window = glfwCreateWindow(WWIDTH, WHEIGHT, "Hello World!", NULL, NULL);
+        window = glfwCreateWindow(WWIDTH, WHEIGHT, "sBots", NULL, NULL);
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
@@ -82,11 +86,15 @@ public class LWJGLView implements View {
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+            if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
+                following = !following;
+                scalemult = 1.0f;
+            }
         });
 
         glfwSetCursorPosCallback(window, (window, mouseX, mouseY) -> {
-            //mouseX = (mouseX - (WWIDTH/2))/scalemult;
-            //mouseY = (mouseY - (WHEIGHT/2))/scalemult;
+            wx = (int) (((mouseX - (WWIDTH / 2)) / scalemult) - xtranslate);
+            wy = (int) (((mouseY - (WHEIGHT / 2)) / scalemult) - ytranslate);
 
             if (mousePressed) {
                 if (mousePressedFirst) {
@@ -109,19 +117,20 @@ public class LWJGLView implements View {
                 mouseLastY = -1.0d;
                 mousePressed = true;
                 mousePressedFirst = true;
+                selectedAgent = world.processMouse(wx, wy);
             }
         });
 
         glfwSetScrollCallback(window, (window, deltaX, deltaY) -> {
-            scalemult += deltaY / 50;
+            if (!following) {
+                scalemult += deltaY / 50;
 
-            // clamp
-            if (scalemult <= 0.18f)
-                scalemult = 0.18f;
-            if (scalemult >= 1f)
-                scalemult = 1f;
-
-            System.out.println("Scale: " + scalemult);
+                // clamp
+                if (scalemult <= 0.18f)
+                    scalemult = 0.18f;
+                if (scalemult >= 2f)
+                    scalemult = 2f;
+            }
         });
 
         // Get the thread stack and push a new frame
@@ -174,7 +183,18 @@ public class LWJGLView implements View {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
             glPushMatrix();
 
-            //glTranslatef(Constants.WWIDTH / 2, Constants.WHEIGHT / 2, 0.0f);
+            if (following) {
+                float xi = (float) selectedAgent.pos.getValue(0);
+                float yi = (float) selectedAgent.pos.getValue(1);
+
+                xi = (-xi) * scalemult;
+                yi = (-yi) * scalemult;
+
+                xtranslate = xi;
+                ytranslate = yi;
+            }
+
+            glTranslatef(Constants.WWIDTH / 2, Constants.WHEIGHT / 2, 0.0f);
             glScalef(scalemult, scalemult, 1.0f);
             glTranslatef(xtranslate, ytranslate, 0);
 
@@ -259,6 +279,14 @@ public class LWJGLView implements View {
                 );
             }
             glEnd();
+
+            // body selected?
+            if (agent.selectflag) {
+                glBegin(GL_POLYGON);
+                glColor3f(1 - agent.red, 1 - agent.gre, 1 - agent.blu);
+                drawCircle(agent.pos.get(0).floatValue(), agent.pos.get(1).floatValue(), Constants.BOTRADIUS * 1.25f);
+                glEnd();
+            }
 
             // body
             glBegin(GL_POLYGON);
