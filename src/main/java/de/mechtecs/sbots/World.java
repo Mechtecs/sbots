@@ -2,7 +2,7 @@ package de.mechtecs.sbots;
 
 import de.mechtecs.sbots.math.Float64VectorCustom;
 
-import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -21,7 +21,7 @@ public class World {
     private int current_epoch = 0;
     private int idcounter = 0;
 
-    public ArrayList<Agent> agents;
+    public CopyOnWriteArrayList<Agent> agents;
 
     // food
     private int FW = WIDTH / CZ;
@@ -32,7 +32,7 @@ public class World {
     public boolean CLOSED = false; //if environment is closed, then no random bots are added per time interval
 
     public World() {
-        this.agents = new ArrayList<>();
+        this.agents = new CopyOnWriteArrayList<>();
         addRandomBots(NUMBOTS);
         //inititalize food layer
 
@@ -78,8 +78,8 @@ public class World {
         }
 
         //reset any counter variables per agent
-        for (int i = 0; i < agents.size(); i++) {
-            agents.get(i).spiked = false;
+        for (Agent agent : agents) {
+            agent.spiked = false;
         }
 
         //give input to every agent. Sets in[] array
@@ -132,9 +132,9 @@ public class World {
                 //distribute its food. It will be erased soon
                 //first figure out how many are around, to distribute this evenly
                 int numaround = 0;
-                for (int j = 0; j < agents.size(); j++) {
-                    if (agents.get(j).health > 0) {
-                        float d = (agents.get(i).pos.minus(agents.get(j).pos)).length();
+                for (Agent agent : agents) {
+                    if (agent.health > 0) {
+                        float d = (agents.get(i).pos.minus(agent.pos)).length();
                         if (d < FOOD_DISTRIBUTION_RADIUS) {
                             numaround++;
                         }
@@ -149,14 +149,14 @@ public class World {
 
                 if (numaround > 0) {
                     //distribute its food evenly
-                    for (int j = 0; j < agents.size(); j++) {
-                        if (agents.get(j).health > 0) {
-                            float d = (agents.get(i).pos.minus(agents.get(j).pos)).length();
+                    for (Agent agent : agents) {
+                        if (agent.health > 0) {
+                            float d = (agents.get(i).pos.minus(agent.pos)).length();
                             if (d < FOOD_DISTRIBUTION_RADIUS) {
-                                agents.get(j).health += 5 * (1 - agents.get(j).herbivore) * (1 - agents.get(j).herbivore) / pow(numaround, 1.25) * agemult;
-                                agents.get(j).repcounter -= REPMULT * (1 - agents.get(j).herbivore) * (1 - agents.get(j).herbivore) / pow(numaround, 1.25) * agemult; //good job, can use spare parts to make copies
-                                if (agents.get(j).health > 2) agents.get(j).health = 2; //cap it!
-                                agents.get(j).initEvent(30, 1, 1, 1); //white means they ate! nice
+                                agent.health += 5 * (1 - agent.herbivore) * (1 - agent.herbivore) / pow(numaround, 1.25) * agemult;
+                                agent.repcounter -= REPMULT * (1 - agent.herbivore) * (1 - agent.herbivore) / pow(numaround, 1.25) * agemult; //good job, can use spare parts to make copies
+                                if (agent.health > 2) agent.health = 2; //cap it!
+                                agent.initEvent(30, 1, 1, 1); //white means they ate! nice
                             }
                         }
                     }
@@ -166,7 +166,7 @@ public class World {
         }
 
         // remove all the dead agents >:)
-        this.agents = this.agents.parallelStream().filter(agent -> agent.health > 0).collect(Collectors.toCollection(ArrayList::new));
+        this.agents.removeIf(agent -> agent.health <= 0);
 
         //handle reproduction
         for (int i = 0; i < agents.size(); i++) {
@@ -188,8 +188,9 @@ public class World {
             if (modcounter % 100 == 0) {
                 if (randf(0, 1) < 0.5) {
                     addRandomBots(1); //every now and then add random bots in
-                } else
+                } else {
                     addNewByCrossover(); //or by crossover
+                }
             }
         }
 

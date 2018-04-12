@@ -161,7 +161,7 @@ public class Agent {
         //we want to spawn behind so that agents dont accidentally eat their young right away
         Float64VectorCustom fb = Float64VectorCustom.valueOf(BOTRADIUS, 0);
         fb = fb.rotate(-a2.angle);
-        a2.pos = a2.pos.plus(fb).plus(Float64VectorCustom.valueOf(randf(-BOTRADIUS * 2, BOTRADIUS * 2), randf(-BOTRADIUS * 2, BOTRADIUS * 2)));
+        a2.pos = this.pos.plus(fb).plus(Float64VectorCustom.valueOf(randf(-BOTRADIUS * 2, BOTRADIUS * 2), randf(-BOTRADIUS * 2, BOTRADIUS * 2)));
 
         if (a2.pos.get(0).doubleValue() < 0)
             a2.pos = Float64VectorCustom.valueOf(WIDTH + a2.pos.get(0).doubleValue(), a2.pos.get(1).doubleValue());
@@ -172,7 +172,7 @@ public class Agent {
         if (a2.pos.get(1).doubleValue() >= HEIGHT)
             a2.pos = Float64VectorCustom.valueOf(a2.pos.get(0).doubleValue(), a2.pos.get(1).doubleValue() - HEIGHT);
 
-        a2.gencount++;
+        a2.gencount = this.gencount + 1;
         a2.repcounter = a2.herbivore * randf(REPRATEH - 0.1, REPRATEH + 0.1) + (1 - a2.herbivore) * randf(REPRATEC - 0.1, REPRATEC + 0.1);
 
         //noisy attribute passing

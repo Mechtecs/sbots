@@ -182,7 +182,7 @@ class Box {
         id = new int[Constants.CONNS];
         notted = new boolean[Constants.CONNS];
 
-        IntStream.range(0, Constants.CONNS).parallel().forEach(i -> {
+        IntStream.range(0, Constants.CONNS).forEach(i -> {
             w[i] = Helpers.randf(0.1, 2);
             id[i] = Helpers.randi(0, Constants.BRAINSIZE - 1);
             if (Helpers.randf(0, 1) > 0.2) {

@@ -1,12 +1,14 @@
 package de.mechtecs.sbots;
 
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import static de.mechtecs.sbots.Constants.*;
@@ -15,8 +17,10 @@ import static java.lang.Math.*;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.stb.STBEasyFont.stb_easy_font_print;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
+
 
 public class LWJGLView implements View {
     private long window;
@@ -32,6 +36,7 @@ public class LWJGLView implements View {
     private int wy;
     private boolean following = false;
     private Agent selectedAgent;
+    private boolean showText = true;
 
     public LWJGLView() {
         scalemult = 0.2f;
@@ -89,6 +94,24 @@ public class LWJGLView implements View {
             if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
                 following = !following;
                 scalemult = 1.0f;
+            }
+            if (key == GLFW_KEY_N && action == GLFW_RELEASE) {
+                Agent oldest = null;
+                for (Agent agent : world.agents) {
+                    agent.selectflag = false;
+                    if (oldest == null) {
+                        oldest = agent;
+                    } else {
+                        if ((agent.gencount == oldest.gencount && agent.age > oldest.age) || agent.gencount > oldest.gencount) {
+                            oldest = agent;
+                        }
+                    }
+                }
+                oldest.selectflag = true;
+                selectedAgent = oldest;
+            }
+            if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
+                showText = !showText;
             }
         });
 
@@ -176,10 +199,17 @@ public class LWJGLView implements View {
         glLoadIdentity();
         glOrtho(0, WWIDTH, WHEIGHT, 0, 0, 1);
 
+
+        Thread worldUpdater = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                world.update();
+            }
+        });
+        worldUpdater.start();
+
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         while (!glfwWindowShouldClose(window)) {
-            world.update();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
             glPushMatrix();
 
@@ -198,16 +228,50 @@ public class LWJGLView implements View {
             glScalef(scalemult, scalemult, 1.0f);
             glTranslatef(xtranslate, ytranslate, 0);
 
+            try {
+                worldUpdater.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             this.drawFood();
             this.drawAgents();
 
             glPopMatrix();
+
+            if (showText) {
+                this.drawInfo();
+            }
+
             glfwSwapBuffers(window); // swap the color buffers
 
             // Poll for window events. The key callback above will only be
             // invoked during this call.
             glfwPollEvents();
         }
+        worldUpdater.interrupt();
+    }
+
+    private String text = "";
+
+    private void drawInfo() {
+        if (selectedAgent != null) {
+            text = "Agent Selected: " + selectedAgent.id + "\nAge: " + selectedAgent.age + "\nGeneration: " + selectedAgent.gencount + "\nHealth:" + selectedAgent.health + "\nReproduction: " + selectedAgent.repcounter;
+        }
+
+        glPushMatrix();
+
+        glColor3f(0, 0, 0);
+        ByteBuffer charBuffer = BufferUtils.createByteBuffer(text.length() * 270);
+        int quads = stb_easy_font_print(0, 0, text, null, charBuffer);
+        glEnableClientState(GL_VERTEX_ARRAY);
+
+        glVertexPointer(2, GL_FLOAT, 16, charBuffer);
+        glScalef(6, 6, 1);
+        glDrawArrays(GL_QUADS, 0, quads * 4);
+
+        glDisableClientState(GL_VERTEX_ARRAY);
+
+        glPopMatrix();
     }
 
     private void drawFood() {
