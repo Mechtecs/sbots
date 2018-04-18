@@ -8,6 +8,8 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 
+import java.awt.*;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
@@ -37,6 +39,10 @@ public class LWJGLView implements View {
     private boolean following = false;
     private Agent selectedAgent;
     private boolean showText = true;
+
+    private boolean enableWait = false;
+    private boolean runNow = false;
+    private boolean enableBreak;
 
     public LWJGLView() {
         scalemult = 0.2f;
@@ -96,22 +102,44 @@ public class LWJGLView implements View {
                 scalemult = 1.0f;
             }
             if (key == GLFW_KEY_N && action == GLFW_RELEASE) {
-                Agent oldest = null;
-                for (Agent agent : world.agents) {
-                    agent.selectflag = false;
-                    if (oldest == null) {
-                        oldest = agent;
-                    } else {
-                        if ((agent.gencount == oldest.gencount && agent.age > oldest.age) || agent.gencount > oldest.gencount) {
-                            oldest = agent;
-                        }
-                    }
-                }
-                oldest.selectflag = true;
-                selectedAgent = oldest;
+                selectOldestAgent();
             }
             if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
                 showText = !showText;
+            }
+            if (key == GLFW_KEY_F12 && action == GLFW_RELEASE) {
+                this.enableWait = !this.enableWait;
+            }
+            if (key == GLFW_KEY_F5 && action == GLFW_RELEASE) {
+                enableBreak = true;
+                try {
+                    FileDialog fd = new FileDialog((Dialog) null, "Save World", FileDialog.SAVE);
+                    fd.setVisible(true);
+                    FileOutputStream fos = new FileOutputStream(fd.getDirectory() + fd.getFile());
+                    ObjectOutputStream oos = new ObjectOutputStream(fos);
+                    oos.writeObject(this.world);
+                    oos.close();
+                    fos.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                enableBreak = false;
+            }
+            if (key == GLFW_KEY_F6 && action == GLFW_RELEASE) {
+                enableBreak = true;
+                try {
+                    FileDialog fd = new FileDialog((Dialog) null, "Save World", FileDialog.LOAD);
+                    fd.setMultipleMode(false);
+                    fd.setVisible(true);
+                    FileInputStream fis = new FileInputStream(fd.getDirectory() + fd.getFile());
+                    ObjectInputStream ois = new ObjectInputStream(fis);
+                    this.world = (World) ois.readObject();
+                    ois.close();
+                    fis.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                enableBreak = false;
             }
         });
 
@@ -184,6 +212,22 @@ public class LWJGLView implements View {
         glfwShowWindow(window);
     }
 
+    private void selectOldestAgent() {
+        Agent oldest = null;
+        for (Agent agent : world.agents) {
+            agent.selectflag = false;
+            if (oldest == null) {
+                oldest = agent;
+            } else {
+                if ((agent.gencount == oldest.gencount && agent.age > oldest.age) || agent.gencount > oldest.gencount) {
+                    oldest = agent;
+                }
+            }
+        }
+        oldest.selectflag = true;
+        selectedAgent = oldest;
+    }
+
     private void loop() {
         // This line is critical for LWJGL's interoperation with GLFW's
         // OpenGL context, or any context that is managed externally.
@@ -199,9 +243,16 @@ public class LWJGLView implements View {
         glLoadIdentity();
         glOrtho(0, WWIDTH, WHEIGHT, 0, 0, 1);
 
-
         Thread worldUpdater = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
+                while (enableWait && !runNow || enableBreak) {
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                runNow = false;
                 world.update();
             }
         });
@@ -228,11 +279,6 @@ public class LWJGLView implements View {
             glScalef(scalemult, scalemult, 1.0f);
             glTranslatef(xtranslate, ytranslate, 0);
 
-            try {
-                worldUpdater.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             this.drawFood();
             this.drawAgents();
 
@@ -241,6 +287,8 @@ public class LWJGLView implements View {
             if (showText) {
                 this.drawInfo();
             }
+
+            runNow = true;
 
             glfwSwapBuffers(window); // swap the color buffers
 
@@ -255,7 +303,11 @@ public class LWJGLView implements View {
 
     private void drawInfo() {
         if (selectedAgent != null) {
-            text = "Agent Selected: " + selectedAgent.id + "\nAge: " + selectedAgent.age + "\nGeneration: " + selectedAgent.gencount + "\nHealth:" + selectedAgent.health + "\nReproduction: " + selectedAgent.repcounter;
+            if (selectedAgent.health > 0) {
+                text = "Agent Selected: " + selectedAgent.id + "\nAge: " + selectedAgent.age + "\nGeneration: " + selectedAgent.gencount + "\nHealth:" + selectedAgent.health + "\nReproduction: " + selectedAgent.repcounter;
+            } else {
+                selectOldestAgent();
+            }
         }
 
         glPushMatrix();

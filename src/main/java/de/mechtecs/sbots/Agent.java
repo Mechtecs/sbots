@@ -3,12 +3,13 @@ package de.mechtecs.sbots;
 import de.mechtecs.sbots.brain.DWRAONBrain;
 import de.mechtecs.sbots.math.Float64VectorCustom;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import static de.mechtecs.sbots.Constants.*;
 import static de.mechtecs.sbots.Helpers.*;
 
-public class Agent {
+public class Agent implements Serializable {
 
     Float64VectorCustom pos;
 

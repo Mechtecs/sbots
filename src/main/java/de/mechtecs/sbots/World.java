@@ -2,6 +2,7 @@ package de.mechtecs.sbots;
 
 import de.mechtecs.sbots.math.Float64VectorCustom;
 
+import java.io.Serializable;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -11,7 +12,7 @@ import static de.mechtecs.sbots.Constants.*;
 import static de.mechtecs.sbots.Helpers.*;
 import static java.lang.Math.*;
 
-public class World {
+public class World implements Serializable {
 
     public int[] numCarnivore;
     public int[] numHerbivore;

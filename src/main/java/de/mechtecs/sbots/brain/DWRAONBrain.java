@@ -6,10 +6,11 @@ import de.mechtecs.sbots.Helpers;
 import de.mechtecs.sbots.math.Float64VectorCustom;
 import org.jscience.mathematics.number.Float64;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 
-public class DWRAONBrain implements Brain {
+public class DWRAONBrain implements Brain, Serializable {
     ArrayList<Box> boxes;
 
     public DWRAONBrain() {
@@ -163,7 +164,7 @@ public class DWRAONBrain implements Brain {
     }
 }
 
-class Box {
+class Box implements Serializable {
     int type; //0: AND, 1:OR
     float kp;
 

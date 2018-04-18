@@ -17,6 +17,7 @@ import org.jscience.mathematics.structure.VectorSpaceNormed;
 import org.jscience.mathematics.vector.DimensionException;
 import org.jscience.mathematics.vector.Vector;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.DoubleStream;
@@ -29,7 +30,7 @@ import java.util.stream.DoubleStream;
  * @version 3.3, January 2, 2007
  */
 public final class Float64VectorCustom extends Vector<Float64> implements
-        VectorSpaceNormed<Vector<Float64>, Float64> {
+        VectorSpaceNormed<Vector<Float64>, Float64>, Serializable {
 
     public Float64VectorCustom rotate(double angle) {
         double c = Math.cos(angle);

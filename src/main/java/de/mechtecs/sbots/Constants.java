@@ -3,8 +3,8 @@ package de.mechtecs.sbots;
 public class Constants {
     public static final int WIDTH = 6000;  //width and height of simulation
     public static final int HEIGHT = 3000;
-    public static final int WWIDTH = 1600;  //window width and height
-    public static final int WHEIGHT = 900;
+    public static final int WWIDTH = 3800;  //window width and height
+    public static final int WHEIGHT = 2137;
 
     public static final int CZ = 50; //cell size in pixels, for food squares. Should divide well into Width Height
 
