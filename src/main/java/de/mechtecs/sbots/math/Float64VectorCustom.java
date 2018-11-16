@@ -20,7 +20,6 @@ import org.jscience.mathematics.vector.Vector;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.DoubleStream;
 
 /**
  * <p> This class represents an optimized {@link Vector vector} implementation
@@ -39,8 +38,12 @@ public final class Float64VectorCustom extends Vector<Float64> implements
         return Float64VectorCustom.valueOf(x2, _values[0] * s + _values[1] * c);
     }
 
-    public float length() {
-        return (float) Math.sqrt(DoubleStream.of(this.getArray()).map(number -> Math.pow(number, 2)).sum());
+    public double length() {
+        double sqrdSum = 0d;
+        for (double v : this._values) {
+            sqrdSum += Math.pow(v, 2);
+        }
+        return Math.sqrt(sqrdSum);
     }
 
     public double[] getArray() {
@@ -340,7 +343,7 @@ public final class Float64VectorCustom extends Vector<Float64> implements
         return V;
     }
 
-    void set(int i, double v) {
+    public synchronized void set(int i, double v) {
         _values[i] = v;
     }
 

@@ -3,6 +3,7 @@ package de.mechtecs.sbots;
 import de.mechtecs.sbots.math.Float64VectorCustom;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -92,8 +93,9 @@ public class World implements Serializable {
         //read output and process consequences of bots on environment. requires out[]
         processOutputs();
 
-        //process agents: health and deaths
+        //process temperature preferences
         for (Agent agent : agents) {
+            //process agents: health and deaths
             float baseloss = 0.0002f; // + 0.0001*(abs(agents.get(i).w1) + abs(agents.get(i).w2))/2;
             //if (agents.get(i).w1<0.1 && agents.get(i).w2<0.1) baseloss=0.0001; //hibernation :p
             //baseloss += 0.00005*agents.get(i).soundmul; //shouting costs energy. just a tiny bit
@@ -104,10 +106,6 @@ public class World implements Serializable {
             } else {
                 agent.health -= baseloss;
             }
-        }
-
-        //process temperature preferences
-        for (Agent agent : agents) {
 
             //calculate temperature at the agents spot. (based on distance from equator)
             float dd = (float) (2.0 * abs(agent.pos.get(0).doubleValue() / WIDTH - 0.5));
@@ -115,27 +113,25 @@ public class World implements Serializable {
             discomfort = discomfort * discomfort;
             if (discomfort < 0.08) discomfort = 0;
             agent.health -= TEMPERATURE_DISCOMFORT * discomfort;
-        }
 
-        //process indicator (used in drawing)
-        for (Agent agent : agents) {
+            //process indicator (used in drawing)
             if (agent.indicator > 0) agent.indicator -= 1;
         }
 
         //remove dead agents.
         //first distribute foods
-        for (int i = 0; i < agents.size(); i++) {
+        for (Agent currentAgent : this.agents) {
             //if this agent was spiked this round as well (i.e. killed). This will make it so that
             //natural deaths can't be capitalized on. I feel I must do this or otherwise agents
             //will sit on spot and wait for things to die around them. They must do work!
-            if (agents.get(i).health <= 0 && agents.get(i).spiked) {
+            if (currentAgent.health <= 0 && currentAgent.spiked) {
 
                 //distribute its food. It will be erased soon
                 //first figure out how many are around, to distribute this evenly
                 int numaround = 0;
                 for (Agent agent : agents) {
                     if (agent.health > 0) {
-                        float d = (agents.get(i).pos.minus(agent.pos)).length();
+                        double d = currentAgent.distance(agent);
                         if (d < FOOD_DISTRIBUTION_RADIUS) {
                             numaround++;
                         }
@@ -146,13 +142,13 @@ public class World implements Serializable {
                 //at age 5, they mature and give full. This can also help prevent
                 //agents eating their young right away
                 float agemult = 1.0f;
-                if (agents.get(i).age < 5) agemult = (float) (agents.get(i).age * 0.2);
+                if (currentAgent.age < 5) agemult = (float) (currentAgent.age * 0.2);
 
                 if (numaround > 0) {
                     //distribute its food evenly
                     for (Agent agent : agents) {
                         if (agent.health > 0) {
-                            float d = (agents.get(i).pos.minus(agent.pos)).length();
+                            double d = currentAgent.distance(agent);
                             if (d < FOOD_DISTRIBUTION_RADIUS) {
                                 agent.health += 5 * (1 - agent.herbivore) * (1 - agent.herbivore) / pow(numaround, 1.25) * agemult;
                                 agent.repcounter -= REPMULT * (1 - agent.herbivore) * (1 - agent.herbivore) / pow(numaround, 1.25) * agemult; //good job, can use spare parts to make copies
@@ -163,18 +159,20 @@ public class World implements Serializable {
                     }
                 }
 
+                this.agents.remove(currentAgent);
             }
         }
 
         // remove all the dead agents >:)
-        this.agents.removeIf(agent -> agent.health <= 0);
+        // this.agents.removeIf(agent -> agent.health <= 0);
 
         //handle reproduction
         for (int i = 0; i < agents.size(); i++) {
-            if (agents.get(i).repcounter < 0 && agents.get(i).health > 0.65 && modcounter % 15 == 0 && randf(0, 1) < 0.1) { //agent is healthy and is ready to reproduce. Also inject a bit non-determinism
+            Agent currentAgent = agents.get(i);
+            if (currentAgent.repcounter < 0 && currentAgent.health > 0.65 && modcounter % 15 == 0 && randf(0, 1) < 0.1) { //agent is healthy and is ready to reproduce. Also inject a bit non-determinism
                 //agents.get(i).health= 0.8; //the agent is left vulnerable and weak, a bit
-                reproduce(i, agents.get(i).MUTRATE1, agents.get(i).MUTRATE2); //this adds BABIES new agents to agents[]
-                agents.get(i).repcounter = agents.get(i).herbivore * randf(REPRATEH - 0.1, REPRATEH + 0.1) + (1 - agents.get(i).herbivore) * randf(REPRATEC - 0.1, REPRATEC + 0.1);
+                reproduce(currentAgent, currentAgent.MUTRATE1, currentAgent.MUTRATE2); //this adds BABIES new agents to agents[]
+                currentAgent.repcounter = currentAgent.herbivore * randf(REPRATEH - 0.1, REPRATEH + 0.1) + (1 - currentAgent.herbivore) * randf(REPRATEC - 0.1, REPRATEC + 0.1);
             }
         }
 
@@ -206,7 +204,7 @@ public class World implements Serializable {
         float PI38 = 3 * PI8; //3pi/8/2
         float PI4 = (float) (Math.PI / 4);
 
-        agents.parallelStream().forEach(a -> {
+        agents.forEach(a -> {
             //HEALTH
             a.in.set(11, cap(a.health / 2)); //divide by 2 since health is in [0,2]
 
@@ -236,7 +234,7 @@ public class World implements Serializable {
                         || a.pos.getValue(1) > a2.pos.getValue(1) + DIST || a.pos.getValue(1) < a2.pos.getValue(1) - DIST)
                     continue;
 
-                float d = (a.pos.minus(a2.pos)).length();
+                double d = a.distance(a2);
 
                 if (d < DIST) {
 
@@ -263,7 +261,7 @@ public class World implements Serializable {
                         float fov = (float) a.eyefov.getValue(q);
                         if (diff1 < fov) {
                             //we see a2 with this eye. Accumulate stats
-                            float mul1 = a.eyesensmod * (abs(fov - diff1) / fov) * ((DIST - d) / DIST);
+                            double mul1 = a.eyesensmod * (abs(fov - diff1) / fov) * ((DIST - d) / DIST);
                             p[q] += mul1 * (d / DIST);
                             r[q] += mul1 * a2.red;
                             g[q] += mul1 * a2.gre;
@@ -272,12 +270,12 @@ public class World implements Serializable {
                     }
 
                     //blood sensor
-                    float forwangle = a.angle;
-                    float diff4 = forwangle - ang;
+                    double forwangle = a.angle;
+                    double diff4 = forwangle - ang;
                     if (abs(forwangle) > Math.PI) diff4 = (float) (2 * Math.PI - abs(forwangle));
                     diff4 = abs(diff4);
                     if (diff4 < PI38) {
-                        float mul4 = ((PI38 - diff4) / PI38) * ((DIST - d) / DIST);
+                        double mul4 = ((PI38 - diff4) / PI38) * ((DIST - d) / DIST);
                         //if we can see an agent close with both eyes in front of us
                         blood += mul4 * (1 - a2.health / 2); //remember: health is in [0 2]
                         //agents with high life dont bleed. low life makes them bleed more
@@ -330,7 +328,7 @@ public class World implements Serializable {
         //LEFT RIGHT R G B SPIKE BOOST SOUND_MULTIPLIER GIVING
         // 0    1    2 3 4   5     6         7             8
         //spike length should slowly tend towards out[5]
-        agents.parallelStream().forEach(a -> {
+        for (Agent a : agents) {
             a.red = (float) a.out.getValue(2);
             a.gre = (float) a.out.getValue(3);
             a.blu = (float) a.out.getValue(4);
@@ -347,7 +345,7 @@ public class World implements Serializable {
 
             // move bots
             Float64VectorCustom v = Float64VectorCustom.valueOf(BOTRADIUS / 2, 0);
-            v = v.rotate(a.angle + Math.PI / 2);
+            v = v.rotate(a.angle + PI / 2);
 
             Float64VectorCustom w1p = a.pos.plus(v); //wheel positions
             Float64VectorCustom w2p = a.pos.minus(v);
@@ -366,19 +364,19 @@ public class World implements Serializable {
             vv = vv.rotate(-BW1);
             a.pos = w2p.minus(vv);
             a.angle -= BW1;
-            if (a.angle < -Math.PI) a.angle = (float) (Math.PI - (-Math.PI - a.angle));
+            if (a.angle < -PI) a.angle = (float) (PI - (-PI - a.angle));
             vv = a.pos.minus(w1p);
             vv = vv.rotate(BW2);
             a.pos = w1p.plus(vv);
             a.angle += BW2;
-            if (a.angle > Math.PI) a.angle = (float) (-Math.PI + (a.angle - Math.PI));
+            if (a.angle > PI) a.angle = (float) (-PI + (a.angle - PI));
 
             //wrap around the map
             if (a.pos.getValue(0) < 0) a.pos.set(0, (float) (WIDTH + a.pos.getValue(0)));
             if (a.pos.getValue(0) >= WIDTH) a.pos.set(0, (float) (a.pos.getValue(0) - WIDTH));
             if (a.pos.getValue(1) < 0) a.pos.set(1, (float) (HEIGHT + a.pos.getValue(1)));
             if (a.pos.getValue(1) >= HEIGHT) a.pos.set(1, (float) (a.pos.getValue(1) - HEIGHT));
-        });
+        }
 
         //process food intake for herbivors
         for (Agent agent : agents) {
@@ -402,13 +400,13 @@ public class World implements Serializable {
             Agent agent = agents.get(i);
             agent.dfood = 0;
             if (agent.give > 0.5) {
-                for (int j = 0; j < agents.size(); j++) {
-                    float d = (agent.pos.minus(agents.get(j).pos)).length();
+                for (Agent nearAgent : agents) {
+                    double d = agent.distance(nearAgent);
                     if (d < FOOD_SHARING_DISTANCE) {
                         //initiate transfer
-                        if (agents.get(j).health < 2) agents.get(j).health += FOODTRANSFER;
+                        if (nearAgent.health < 2) nearAgent.health += FOODTRANSFER;
                         agent.health -= FOODTRANSFER;
-                        agents.get(j).dfood += FOODTRANSFER; //only for drawing
+                        nearAgent.dfood += FOODTRANSFER; //only for drawing
                         agent.dfood -= FOODTRANSFER;
                     }
                 }
@@ -427,7 +425,7 @@ public class World implements Serializable {
                 for (int j = 0; j < agents.size(); j++) {
 
                     if (i == j) continue;
-                    float d = (agents.get(i).pos.minus(agents.get(j).pos)).length();
+                    double d = agents.get(i).distance(agents.get(j));
 
                     if (d < 2 * BOTRADIUS) {
                         //these two are in collision and agent i has extended spike and is going decent fast!
@@ -466,7 +464,7 @@ public class World implements Serializable {
 
     // Multi-Threaded
     void brainsTick() {
-        this.agents.parallelStream().forEach(Agent::tick);
+        this.agents.forEach(Agent::tick);
     }
 
     void addRandomBots(int num) {
@@ -549,14 +547,14 @@ public class World implements Serializable {
         agents.add(anew);
     }
 
-    void reproduce(int ai, float MR, float MR2) {
+    void reproduce(Agent a1, float MR, float MR2) {
         if (randf(0, 1) < 0.04) MR = MR * randf(1, 10);
         if (randf(0, 1) < 0.04) MR2 = MR2 * randf(1, 10);
 
-        agents.get(ai).initEvent(30, 0, 0.8f, 0); //green event means agent reproduced.
+        a1.initEvent(30, 0, 0.8f, 0); //green event means agent reproduced.
         for (int i = 0; i < BABIES; i++) {
 
-            Agent a2 = agents.get(ai).reproduce(MR, MR2);
+            Agent a2 = a1.reproduce(MR, MR2);
             a2.id = idcounter;
             idcounter++;
             agents.add(a2);
@@ -615,7 +613,7 @@ public class World implements Serializable {
 
     Agent processMouse(int x, int y) {
         Float64VectorCustom click = Float64VectorCustom.valueOf(x, y);
-        Agent closest = (Agent) agents.stream().sorted((a1, a2) -> Float.compare(a1.distance(click), a2.distance(click))).toArray()[0];
+        Agent closest = (Agent) agents.stream().sorted(Comparator.comparingDouble(a -> a.distance(click))).toArray()[0];
 
         //toggle selection of this agent
         for (Agent agent : agents) agent.selectflag = false;

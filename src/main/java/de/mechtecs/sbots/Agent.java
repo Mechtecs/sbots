@@ -133,8 +133,12 @@ public class Agent implements Serializable {
         eyedir = Float64VectorCustom.valueOf(eyedirD);
     }
 
-    public float distance(Float64VectorCustom point) {
+    public double distance(Float64VectorCustom point) {
         return this.pos.minus(point).length();
+    }
+
+    public double distance(Agent agent) {
+        return this.distance(agent.pos);
     }
 
     public void printSelf() {

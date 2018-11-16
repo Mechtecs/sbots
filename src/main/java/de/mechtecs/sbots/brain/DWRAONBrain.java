@@ -4,14 +4,13 @@ import de.mechtecs.sbots.Brain;
 import de.mechtecs.sbots.Constants;
 import de.mechtecs.sbots.Helpers;
 import de.mechtecs.sbots.math.Float64VectorCustom;
-import org.jscience.mathematics.number.Float64;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 
 public class DWRAONBrain implements Brain, Serializable {
-    ArrayList<Box> boxes;
+    private ArrayList<Box> boxes;
 
     public DWRAONBrain() {
         boxes = new ArrayList<>();
@@ -42,7 +41,7 @@ public class DWRAONBrain implements Brain, Serializable {
     @Override
     public Float64VectorCustom tick(Float64VectorCustom in) {
         for (int i = 0; i < Constants.INPUTSIZE; i++) {
-            this.boxes.get(i).out = in.get(i).copy();
+            this.boxes.get(i).out = in.get(i).floatValue();
         }
 
         for (int i = Constants.INPUTSIZE; i < Constants.BRAINSIZE; i++) {
@@ -51,22 +50,22 @@ public class DWRAONBrain implements Brain, Serializable {
             if (box.type == 0) {
                 // AND NODE
 
-                Float64 res = Float64.ONE;
+                double res = 1.0d;
                 for (int j = 0; j < Constants.CONNS; j++) {
-                    Float64 val = boxes.get(box.id[j]).out.copy();
+                    double val = boxes.get(box.id[j]).out;
                     if (box.notted[j])
-                        val = val.times(-1);
-                    res = res.times(val);
+                        val *= -1d;
+                    res *= val;
                 }
 
-                res = res.times(box.bias);
-                box.target = res.floatValue();
+                res *= box.bias;
+                box.target = res;
             } else {
                 // OR NODE
 
-                float res = 0;
+                double res = 0;
                 for (int j = 0; j < Constants.CONNS; j++) {
-                    float val = boxes.get(box.id[j]).out.floatValue();
+                    double val = boxes.get(box.id[j]).out;
                     if (box.notted[j])
                         val = 1 - val;
                     res = res + (val * box.w[j]);
@@ -84,11 +83,11 @@ public class DWRAONBrain implements Brain, Serializable {
         // make all boxes go a bit toward target
         for (int i = Constants.INPUTSIZE; i < Constants.BRAINSIZE; i++) {
             Box box = boxes.get(i);
-            box.out = Float64.valueOf(box.out.floatValue() + ((box.target - box.out.floatValue()) * box.kp));
+            box.out = box.out + ((box.target - box.out) * box.kp);
         }
 
         Float64VectorCustom outVec = Float64VectorCustom.valueOf(new double[Constants.OUTPUTSIZE]);
-        IntStream.range(0, Constants.OUTPUTSIZE).forEachOrdered(i -> outVec.set(i, boxes.get(Constants.BRAINSIZE - 1 - i).out.floatValue()));
+        IntStream.range(0, Constants.OUTPUTSIZE).forEachOrdered(i -> outVec.set(i, boxes.get(Constants.BRAINSIZE - 1 - i).out));
 
         return outVec;
     }
@@ -112,7 +111,7 @@ public class DWRAONBrain implements Brain, Serializable {
             if (Helpers.randf(0,1)<MR*3) {
                 int rc= Helpers.randi(0, Constants.CONNS - 1);
                 boxes.get(i).w[rc]+= Helpers.randn(0, MR2);
-                if (boxes.get(i).w[rc]<0.01) boxes.get(i).w[rc]= (float) 0.01;
+                if (boxes.get(i).w[rc]<0.01) boxes.get(i).w[rc]= 0.01d;
 //             a2.mutations.push_back("weight jiggled\n");
             }
 
@@ -166,20 +165,20 @@ public class DWRAONBrain implements Brain, Serializable {
 
 class Box implements Serializable {
     int type; //0: AND, 1:OR
-    float kp;
+    double kp;
 
-    float[] w;
+    double[] w;
     int[] id;
     boolean[] notted;
 
-    float bias;
+    double bias;
 
     // state variables
-    float target; // target value this node is going toward
-    Float64 out; // current output, and history. 0 is farthest back. -1 is latest.
+    double target; // target value this node is going toward
+    double out; // current output, and history. 0 is farthest back. -1 is latest.
 
     Box() {
-        w = new float[Constants.CONNS];
+        w = new double[Constants.CONNS];
         id = new int[Constants.CONNS];
         notted = new boolean[Constants.CONNS];
 
@@ -196,7 +195,7 @@ class Box implements Serializable {
         kp = Helpers.randf(0.8, 1);
         bias = Helpers.randf(-1, 1);
 
-        out = Float64.valueOf(0.0);
+        out = 0.0d;
         target = 0;
     }
 
@@ -209,7 +208,7 @@ class Box implements Serializable {
         b.notted = notted.clone();
         b.bias = bias;
         b.target = target;
-        b.out = out.copy();
+        b.out = out;
         return b;
     }
 }
